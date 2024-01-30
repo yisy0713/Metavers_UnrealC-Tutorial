@@ -59,6 +59,12 @@ AAABCharacterPlayer::AAABCharacterPlayer()
 		ChangeControlAction = InputActionChangeControlRef.Object;
 	}
 
+	static ConstructorHelpers::FObjectFinder<UInputAction> InputActionAttackRef(TEXT("/Game/ArenaBattle/Input/Actions/IA_Attack.IA_Attack"));
+	if (InputActionAttackRef.Object)
+	{
+		AttackAction = InputActionAttackRef.Object;
+	}
+
 	CurrentCharacterControlType = ECharacterControlType::Quater;
 }
 
@@ -89,6 +95,7 @@ void AAABCharacterPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInput
 	EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ACharacter::Jump);
 	EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
 	EnhancedInputComponent->BindAction(ChangeControlAction, ETriggerEvent::Triggered, this, &AAABCharacterPlayer::ChangeControl);
+	EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Triggered, this, &AAABCharacterPlayer::Attack);
 
 }
 
@@ -184,5 +191,10 @@ void AAABCharacterPlayer::SetCharacterControl(ECharacterControlType ControlType)
 	UABCharacterControllDataAsset* NewCharacterControlData = CharacterControlManager[ControlType];
 	SetCharacterControlData(NewCharacterControlData);
 
+}
+
+void AAABCharacterPlayer::Attack()
+{
+	ProcessComboCommand();		// 여기 왜 super 안붙임?????->오버라이딩 안해서(오버라이딩 하면 super붙여줘야한대)
 }
 

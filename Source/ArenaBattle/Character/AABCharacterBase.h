@@ -24,9 +24,32 @@ public:
 
 protected:
 	virtual void SetCharacterControlData(const class UABCharacterControllDataAsset* CharacterControlData);
+	void ProcessComboCommand();
+
+	void ComboActionBegin();
+	void ComboActionEnd(UAnimMontage* TargetMontage, bool bIsInterruped);
+
+	void SetComboCheckTimer();
+	void ComboCheck();
+
+	void ComboCheck2();
 
 protected:
 	//맵에서 키값으로 이넘으로 값을 데이터셋으로 사용하겠다, 변수명은 다음처럼
 	TMap< ECharacterControlType, class UABCharacterControllDataAsset*> CharacterControlManager; // 생성자가 호출될떄 같이 메모리 할당
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animation)
+	TObjectPtr<class UAnimMontage> ComboActionMontage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = AttackData)
+	TObjectPtr<class UABComboAttackDataAsset> ComboAttackData;
+
+	uint8 CurrentComboCount;
+
+	FTimerHandle ComboTimerHandle;
+	FTimerHandle ComboTimerHandle2;
+
+	bool HasNextComboCommand = false;
+	
 
 };

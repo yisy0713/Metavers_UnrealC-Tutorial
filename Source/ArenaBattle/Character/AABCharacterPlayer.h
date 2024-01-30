@@ -29,6 +29,7 @@ private:
 	void ShoulderLook(const FInputActionValue& Value);
 	void ChangeControl();
 	void SetCharacterControl(ECharacterControlType ControlType);
+	void Attack();
 
 protected:
 	//camera
@@ -56,6 +57,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UInputAction> ChangeControlAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class UInputAction> AttackAction;
 
 private:
 	ECharacterControlType CurrentCharacterControlType;
