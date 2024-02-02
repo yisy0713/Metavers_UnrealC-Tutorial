@@ -5,21 +5,18 @@
 #include "CoreMinimal.h"
 #include "InputActionValue.h"
 #include "Character/AABCharacterBase.h"
-#include "Interface/ABAnimationAttackInterface.h"
 #include "AABCharacterPlayer.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class ARENABATTLE_API AAABCharacterPlayer : public AAABCharacterBase, public IABAnimationAttackInterface
+class ARENABATTLE_API AAABCharacterPlayer : public AAABCharacterBase
 {
 	GENERATED_BODY()
 	
 public:
 	AAABCharacterPlayer();
-
-	virtual void AttackHitCheck() override;
 
 protected:
 	virtual void BeginPlay() override;

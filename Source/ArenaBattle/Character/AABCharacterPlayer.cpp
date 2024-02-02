@@ -8,8 +8,6 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "Character/ABCharacterControllDataAsset.h"
-#include "Components/CapsuleComponent.h"
-#include "Engine/DamageEvents.h"
 
 AAABCharacterPlayer::AAABCharacterPlayer()
 {
@@ -70,66 +68,6 @@ AAABCharacterPlayer::AAABCharacterPlayer()
 	CurrentCharacterControlType = ECharacterControlType::Quater;
 }
 
-void AAABCharacterPlayer::AttackHitCheck()
-{
-	// 공격 충돌 판정을 한다
-	UE_LOG(LogTemp, Log, TEXT("CheckHit"));
-
-	FCollisionQueryParams CollsionParams(SCENE_QUERY_STAT(Attack), false, this);	//collision의 추가정보를 넣고싶을때
-	FHitResult OutHitResult;
-
-	bool IsHit = false;
-	bool IsHit4 = false;
-
-	TArray<FOverlapResult> OutOverlapResultArray;
-	const FQuat OverlapRotation = GetActorQuat();
-
-	const float AttackRange = 150.0f;
-	const float CapsuleRadius = 50.0f;
-
-	const FVector Start = GetActorLocation() + GetActorForwardVector() * GetCapsuleComponent()->GetScaledCapsuleRadius();
-	const FVector End = Start + GetActorForwardVector() * AttackRange;
-
-	if (CurrentComboCount < 4)
-	{
-		bool IsHit = GetWorld()->SweepSingleByChannel(OutHitResult, Start, End, FQuat::Identity, ECC_GameTraceChannel1, FCollisionShape::MakeSphere(CapsuleRadius), CollsionParams);
-	}
-	else
-	{
-		IsHit4 = GetWorld()->OverlapMultiByChannel(OutOverlapResultArray, Start, OverlapRotation, ECC_GameTraceChannel1, FCollisionShape::MakeSphere(100.0f));
-	}
-	
-	if (IsHit)
-	{
-		FDamageEvent DamageEvent;
-		OutHitResult.GetActor()->TakeDamage(100.0f, DamageEvent, GetController(), this);
-	}
-	else if (IsHit4)
-	{
-		FDamageEvent DamageEvent;
-		for (int32 i = 0; i < OutOverlapResultArray.Num(); i++)
-		{
-			OutOverlapResultArray[i].GetActor()->TakeDamage(100.0f, DamageEvent, GetController(), this);
-		}
-	}
-
-#if ENABLE_DRAW_DEBUG
-
-	if (CurrentComboCount < 4)
-	{
-		FVector CapsulePosition = Start + (End - Start) / 2.0f;
-		float HalfHeight = AttackRange / 2.0f;
-
-		DrawDebugCapsule(GetWorld(), CapsulePosition, HalfHeight, CapsuleRadius, FRotationMatrix::MakeFromZ(GetActorForwardVector()).ToQuat(), FColor::Red, false, 3.0f);
-	}
-	else if (CurrentComboCount == 4)
-	{
-		DrawDebugSphere(GetWorld(), Start, 100.0f, 24, FColor::Green, false, 3.0f);
-	}
-	
-#endif
-}
-
 void AAABCharacterPlayer::BeginPlay()
 {
 	Super::BeginPlay();
@@ -163,7 +101,7 @@ void AAABCharacterPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInput
 
 void AAABCharacterPlayer::SetCharacterControlData(const UABCharacterControllDataAsset* CharacterControlData)
 {
-	Super::SetCharacterControlData(CharacterControlData);    //상위클래스 설정 사용
+	Super::SetCharacterControlData(CharacterControlData);//상위클래스 설정 사용
 
 	//Input
 	APlayerController* PlayerController = CastChecked<APlayerController>(GetController());

@@ -30,9 +30,9 @@ protected:
 	void ComboActionEnd(UAnimMontage* TargetMontage, bool bIsInterruped);
 
 	void SetComboCheckTimer();
-	void SetComboStartCheckTimer();
-
 	void ComboCheck();
+
+	void ComboCheck2();
 
 protected:
 	//맵에서 키값으로 이넘으로 값을 데이터셋으로 사용하겠다, 변수명은 다음처럼
@@ -47,7 +47,7 @@ protected:
 	uint8 CurrentComboCount;
 
 	FTimerHandle ComboTimerHandle;
-	FTimerHandle ComboStartTimerHandle;
+	FTimerHandle ComboTimerHandle2;
 
 	bool HasNextComboCommand = false;
 	

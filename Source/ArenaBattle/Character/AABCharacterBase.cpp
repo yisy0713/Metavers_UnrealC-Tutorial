@@ -79,28 +79,21 @@ void AAABCharacterBase::SetCharacterControlData(const UABCharacterControllDataAs
 
 void AAABCharacterBase::ProcessComboCommand()
 {
-	if (CurrentComboCount == 0)
-	{
-		//UE_LOG(LogTemp, Log, TEXT("CurrentComboCount == 0"));		// ·Î±× Âï±â
+	/*UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();		//Ä¸½¶ ½ºÄÌ·¹Å»¸Þ½¬ ¹«ºê¸ÕÆ® ¿¡·Î¿ì ³×°¡ÁöÄÄÆ÷³ÍÆ®Áß¿¡
+	AnimInstance->Montage_Play(ComboActionMontage);*/
+
+	if (CurrentComboCount == 0) {
 		ComboActionBegin();
 		return;
 	}
 
-	if(ComboTimerHandle.IsValid() && !ComboStartTimerHandle.IsValid())					// && !ComboTimerHandle2.IsValid())
+	if(ComboTimerHandle.IsValid() && !ComboTimerHandle2.IsValid())
 	{
-		//UE_LOG(LogTemp, Log, TEXT("HasNextComboCommand : true"));		// ·Î±× Âï±â
 		HasNextComboCommand = true;
 	}
 	else
 	{
-		//UE_LOG(LogTemp, Log, TEXT("HasNextComboCommand : false"));
 		HasNextComboCommand = false;
-
-		//CurrentComboCount = 0;
-		GetWorld()->GetTimerManager().ClearTimer(ComboStartTimerHandle);
-		ComboStartTimerHandle.Invalidate();
-		GetWorld()->GetTimerManager().ClearTimer(ComboTimerHandle);
-		ComboTimerHandle.Invalidate();
 	}
 }
 
@@ -116,7 +109,7 @@ void AAABCharacterBase::ComboActionBegin()
 	EndDelegate.BindUObject(this, &AAABCharacterBase::ComboActionEnd);
 	AnimInstance->Montage_SetEndDelegate(EndDelegate, ComboActionMontage);
 
-	SetComboStartCheckTimer();
+	SetComboCheckTimer();
 }
 
 void AAABCharacterBase::ComboActionEnd(UAnimMontage* TargetMontage, bool bIsInterruped)
@@ -125,29 +118,27 @@ void AAABCharacterBase::ComboActionEnd(UAnimMontage* TargetMontage, bool bIsInte
 	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
 }
 
-void AAABCharacterBase::SetComboStartCheckTimer()
-{
-	GetWorld()->GetTimerManager().SetTimer(ComboStartTimerHandle, this, &AAABCharacterBase::SetComboCheckTimer, 0.3f, false);
-}
-
 void AAABCharacterBase::SetComboCheckTimer()
 {
-	if (CurrentComboCount <= 0) return;
+	float ComboEffectiveTime2 = ComboAttackData->EffectiveFrameCount[CurrentComboCount - 1 + 4] / ComboAttackData->FrameRate;	// (5 / 30)???????????
 	float ComboEffectiveTime = ComboAttackData->EffectiveFrameCount[CurrentComboCount - 1] / ComboAttackData->FrameRate;	// (20 / 30)
 
-	if (ComboEffectiveTime > 0.0f)
+	if (ComboEffectiveTime > 0.0f && ComboEffectiveTime2 > 0.0f)
 	{
-		ComboStartTimerHandle.Invalidate();
-		GetWorld()->GetTimerManager().SetTimer(ComboTimerHandle, this, &AAABCharacterBase::ComboCheck, 0.3f, false);
+		GetWorld()->GetTimerManager().SetTimer(ComboTimerHandle2, this, &AAABCharacterBase::ComboCheck2, ComboEffectiveTime2, false);
+		GetWorld()->GetTimerManager().SetTimer(ComboTimerHandle, this, &AAABCharacterBase::ComboCheck, ComboEffectiveTime, false);
 	}
 }
 
 void AAABCharacterBase::ComboCheck()
 {
+	if (!ComboTimerHandle2.IsValid())
+	{
+		ComboTimerHandle.Invalidate();
+	}
+	
 	if (HasNextComboCommand)
 	{
-		//UE_LOG(LogTemp, Log, TEXT("ComboCheck() == %d"), CurrentComboCount);
-
 		CurrentComboCount = FMath::Clamp(CurrentComboCount + 1, 1, ComboAttackData->MaxComboCount);
 		
 		FName NextSectionName = *FString::Printf(TEXT("%s%d"), *ComboAttackData->MontageSectionPrefix, CurrentComboCount);
@@ -155,9 +146,14 @@ void AAABCharacterBase::ComboCheck()
 		UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 		AnimInstance->Montage_JumpToSection(NextSectionName, ComboActionMontage);
 
-		SetComboStartCheckTimer();
+		SetComboCheckTimer();
 		HasNextComboCommand = false;
 	}
+}
+
+void AAABCharacterBase::ComboCheck2()
+{
+	ComboTimerHandle2.Invalidate();
 }
 
 
