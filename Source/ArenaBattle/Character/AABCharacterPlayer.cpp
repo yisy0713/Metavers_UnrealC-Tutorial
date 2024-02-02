@@ -8,6 +8,8 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "Character/ABCharacterControllDataAsset.h"
+#include "Components/CapsuleComponent.h"
+#include "Engine/DamageEvents.h"
 
 AAABCharacterPlayer::AAABCharacterPlayer()
 {
@@ -68,6 +70,61 @@ AAABCharacterPlayer::AAABCharacterPlayer()
 	CurrentCharacterControlType = ECharacterControlType::Quater;
 }
 
+void AAABCharacterPlayer::AttackHitCheck()
+{
+	// 공격 충돌 판정을 한다.
+	UE_LOG(LogTemp, Log, TEXT("AttackHitCheck_P"));
+
+	FCollisionQueryParams CollisionParams(SCENE_QUERY_STAT(Attack), false, this);
+	FHitResult OutHitResult;
+	const float AttackRange = 150.0f;
+	const float CapsuleRadius = 50.0f;
+	const FVector Start = GetActorLocation() + GetActorForwardVector() * GetCapsuleComponent()->GetScaledCapsuleRadius();
+	const FVector End = Start + GetActorForwardVector() * AttackRange;
+
+	TArray<FOverlapResult> OutOverlapResultArray;
+	//const FVector OverlapPosition = Start + (End - Start) / 2.0f;
+	const FQuat OverlapRotation = GetActorQuat();
+	bool IsHit = false;
+	bool IsFullComboHit = false;
+	if (CurrentComboCount < 4)
+	{
+		IsHit = GetWorld()->SweepSingleByChannel(OutHitResult, Start, End, FQuat::Identity, ECC_GameTraceChannel1, FCollisionShape::MakeSphere(CapsuleRadius), CollisionParams);
+	}
+	else
+	{
+		IsFullComboHit = GetWorld()->OverlapMultiByChannel(OutOverlapResultArray, Start, OverlapRotation, ECC_GameTraceChannel1, FCollisionShape::MakeSphere(100.0f));
+	}
+
+	if (IsHit)
+	{
+		FDamageEvent DamageEvent;
+		OutHitResult.GetActor()->TakeDamage(100.0f, DamageEvent, GetController(), this);
+	}
+	else if (IsFullComboHit)
+	{
+		FDamageEvent DamageEvent;
+		for (int32 i = 0; i < OutOverlapResultArray.Num(); i++)
+		{
+			OutOverlapResultArray[i].GetActor()->TakeDamage(100.0f, DamageEvent, GetController(), this);
+		}
+	}
+
+#if ENABLE_DRAW_DEBUG
+	if (CurrentComboCount < 4)
+	{
+		FVector CapsulePosition = Start + (End - Start) / 2.0f;
+		float HalfHeight = AttackRange / 2.0f;
+		DrawDebugCapsule(GetWorld(), CapsulePosition, HalfHeight, CapsuleRadius, FRotationMatrix::MakeFromZ(GetActorForwardVector()).ToQuat(), FColor::Red, false, 3.0f);
+	}
+	else
+	{
+		DrawDebugSphere(GetWorld(), Start, 100.0f, 24, FColor::Red, false, 3.0f);
+	}
+#endif // ENABLE_DRAW_DEBUG
+
+}
+
 void AAABCharacterPlayer::BeginPlay()
 {
 	Super::BeginPlay();
@@ -88,7 +145,7 @@ void AAABCharacterPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInput
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 	//향상된 입력 시스템 사용
 	//입력매핑컨텍스트에서 액션과 함수
-	UEnhancedInputComponent* EnhancedInputComponent = CastChecked <UEnhancedInputComponent> (PlayerInputComponent);
+	UEnhancedInputComponent* EnhancedInputComponent = CastChecked <UEnhancedInputComponent>(PlayerInputComponent);
 	EnhancedInputComponent->BindAction(QuaterMoveAction, ETriggerEvent::Triggered, this, &AAABCharacterPlayer::QuaterMove);
 	EnhancedInputComponent->BindAction(ShoulderMoveAction, ETriggerEvent::Triggered, this, &AAABCharacterPlayer::ShoulderMove);
 	EnhancedInputComponent->BindAction(ShoulderLookAction, ETriggerEvent::Triggered, this, &AAABCharacterPlayer::ShoulderLook);
@@ -120,7 +177,7 @@ void AAABCharacterPlayer::SetCharacterControlData(const UABCharacterControllData
 	CameraBoom->TargetArmLength = CharacterControlData->TargetArmLength;
 	CameraBoom->SetRelativeRotation(CharacterControlData->RelativeRotation);
 	CameraBoom->bUsePawnControlRotation = CharacterControlData->bUsePawnControlRotation;
-	CameraBoom->bDoCollisionTest  = CharacterControlData->bDoCollisionTest;
+	CameraBoom->bDoCollisionTest = CharacterControlData->bDoCollisionTest;
 	CameraBoom->bInheritPitch = CharacterControlData->bInheritPitch;
 	CameraBoom->bInheritYaw = CharacterControlData->bInheritYaw;
 	CameraBoom->bInheritRoll = CharacterControlData->bInheritRoll;
@@ -195,6 +252,5 @@ void AAABCharacterPlayer::SetCharacterControl(ECharacterControlType ControlType)
 
 void AAABCharacterPlayer::Attack()
 {
-	ProcessComboCommand();		// 여기 왜 super 안붙임?????->오버라이딩 안해서(오버라이딩 하면 super붙여줘야한대)
+	ProcessComboCommand();
 }
-
