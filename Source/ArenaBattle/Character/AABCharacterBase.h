@@ -34,12 +34,17 @@ protected:
 
 	void ComboCheck();
 
+	void SetDead();
+
 protected:
 	//맵에서 키값으로 이넘으로 값을 데이터셋으로 사용하겠다, 변수명은 다음처럼
 	TMap< ECharacterControlType, class UABCharacterControllDataAsset*> CharacterControlManager; // 생성자가 호출될떄 같이 메모리 할당
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animation)
 	TObjectPtr<class UAnimMontage> ComboActionMontage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animation)
+	TObjectPtr<class UAnimMontage> DeadMontage;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = AttackData)
 	TObjectPtr<class UABComboAttackDataAsset> ComboAttackData;
@@ -51,5 +56,6 @@ protected:
 
 	bool HasNextComboCommand = false;
 	
+	FTimerHandle DeadTimerHandle;
 
 };

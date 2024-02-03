@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Common/ABCommon.h"
 #include "Animation/AnimNotifies/AnimNotify.h"
 #include "ABAnimNotify_AttackHitCheck.generated.h"
 
@@ -16,4 +17,8 @@ class ARENABATTLE_API UABAnimNotify_AttackHitCheck : public UAnimNotify
 	
 protected:
 	virtual void Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference) override;
+
+private:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Type, Meta = (AllowPrivateAccess = "true"))
+	AttackType AttackType;
 };

@@ -3,13 +3,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Common/ABCommon.h"
 #include "UObject/Interface.h"
-#include "ABAnimationAttackInterface.generated.h"
+#include "ABCharacterWidgetInterface.generated.h"
 
 // This class does not need to be modified.
 UINTERFACE(MinimalAPI)
-class UABAnimationAttackInterface : public UInterface
+class UABCharacterWidgetInterface : public UInterface
 {
 	GENERATED_BODY()
 };
@@ -17,11 +16,11 @@ class UABAnimationAttackInterface : public UInterface
 /**
  * 
  */
-class ARENABATTLE_API IABAnimationAttackInterface
+class ARENABATTLE_API IABCharacterWidgetInterface
 {
 	GENERATED_BODY()
 
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
-	virtual void AttackHitCheck(AttackType AttackType) = 0;
+	virtual void SetupCharacterWidget(class UABUserWidget* InUserWidget) = 0;
 };

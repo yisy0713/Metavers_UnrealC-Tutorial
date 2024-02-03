@@ -16,6 +16,6 @@ void UABAnimNotify_AttackHitCheck::Notify(USkeletalMeshComponent* MeshComp, UAni
 	IABAnimationAttackInterface* AttackInterface = Cast<IABAnimationAttackInterface>(MeshComp->GetOwner());
 	if (AttackInterface)
 	{
-		AttackInterface->AttackHitCheck();
+		AttackInterface->AttackHitCheck(AttackType);
 	}
 }

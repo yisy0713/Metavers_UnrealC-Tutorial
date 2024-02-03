@@ -70,56 +70,62 @@ AAABCharacterPlayer::AAABCharacterPlayer()
 	CurrentCharacterControlType = ECharacterControlType::Quater;
 }
 
-void AAABCharacterPlayer::AttackHitCheck()
+void AAABCharacterPlayer::AttackHitCheck(AttackType AttackType)
 {
 	// 공격 충돌 판정을 한다.
 	UE_LOG(LogTemp, Log, TEXT("AttackHitCheck_P"));
 
 	FCollisionQueryParams CollisionParams(SCENE_QUERY_STAT(Attack), false, this);
 	FHitResult OutHitResult;
+	TArray<FOverlapResult> OutOverlapResults;
 	const float AttackRange = 150.0f;
 	const float CapsuleRadius = 50.0f;
+
 	const FVector Start = GetActorLocation() + GetActorForwardVector() * GetCapsuleComponent()->GetScaledCapsuleRadius();
 	const FVector End = Start + GetActorForwardVector() * AttackRange;
-
-	TArray<FOverlapResult> OutOverlapResultArray;
-	//const FVector OverlapPosition = Start + (End - Start) / 2.0f;
-	const FQuat OverlapRotation = GetActorQuat();
 	bool IsHit = false;
-	bool IsFullComboHit = false;
-	if (CurrentComboCount < 4)
+
+	switch (AttackType)
 	{
-		IsHit = GetWorld()->SweepSingleByChannel(OutHitResult, Start, End, FQuat::Identity, ECC_GameTraceChannel1, FCollisionShape::MakeSphere(CapsuleRadius), CollisionParams);
-	}
-	else
-	{
-		IsFullComboHit = GetWorld()->OverlapMultiByChannel(OutOverlapResultArray, Start, OverlapRotation, ECC_GameTraceChannel1, FCollisionShape::MakeSphere(100.0f));
+	case AttackType::Normal:
+		IsHit = GetWorld()->SweepSingleByChannel(OutHitResult, Start, End, FQuat::Identity,
+			ECC_GameTraceChannel1, FCollisionShape::MakeSphere(CapsuleRadius), CollisionParams);
+		break;
+	case AttackType::Range:
+		IsHit = GetWorld()->OverlapMultiByChannel(OutOverlapResults, GetActorLocation(), FQuat::Identity, ECC_GameTraceChannel1, FCollisionShape::MakeSphere(AttackRange), CollisionParams);
+		break;
 	}
 
 	if (IsHit)
 	{
 		FDamageEvent DamageEvent;
-		OutHitResult.GetActor()->TakeDamage(100.0f, DamageEvent, GetController(), this);
-	}
-	else if (IsFullComboHit)
-	{
-		FDamageEvent DamageEvent;
-		for (int32 i = 0; i < OutOverlapResultArray.Num(); i++)
+		if (OutHitResult.GetActor())
 		{
-			OutOverlapResultArray[i].GetActor()->TakeDamage(100.0f, DamageEvent, GetController(), this);
+			OutHitResult.GetActor()->TakeDamage(100.0f, DamageEvent, GetController(), this);
 		}
+
+		if (OutOverlapResults.Num() > 0)
+		{
+			// for each 써가지고 위에 있는거(충돌 처리) 해야댐
+		}
+
 	}
 
 #if ENABLE_DRAW_DEBUG
-	if (CurrentComboCount < 4)
+	FVector CapsulePosition = Start + (End - Start) / 2.0f;
+	float HalfHeight = AttackRange / 2.0f;
+
+	FColor Color = IsHit ? FColor::Green : FColor::Red;
+
+	switch (AttackType)
 	{
-		FVector CapsulePosition = Start + (End - Start) / 2.0f;
-		float HalfHeight = AttackRange / 2.0f;
-		DrawDebugCapsule(GetWorld(), CapsulePosition, HalfHeight, CapsuleRadius, FRotationMatrix::MakeFromZ(GetActorForwardVector()).ToQuat(), FColor::Red, false, 3.0f);
-	}
-	else
-	{
-		DrawDebugSphere(GetWorld(), Start, 100.0f, 24, FColor::Red, false, 3.0f);
+	case AttackType::Normal:
+		DrawDebugCapsule(GetWorld(), CapsulePosition, HalfHeight, CapsuleRadius,
+			FRotationMatrix::MakeFromZ(GetActorForwardVector()).ToQuat(), Color, false, 3.0f);
+		break;
+	case AttackType::Range:
+		DrawDebugSphere(GetWorld(), GetActorLocation(), AttackRange, 8, Color, false, 3.0f);
+		break;
 	}
 #endif // ENABLE_DRAW_DEBUG
 

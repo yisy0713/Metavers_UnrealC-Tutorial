@@ -6,6 +6,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Character/ABCharacterControllDataAsset.h"
 #include "Character/ABComboAttackDataAsset.h"
+
 // Sets default values
 AAABCharacterBase::AAABCharacterBase()
 {
@@ -158,6 +159,22 @@ void AAABCharacterBase::ComboCheck()
 		SetComboStartCheckTimer();
 		HasNextComboCommand = false;
 	}
+}
+
+void AAABCharacterBase::SetDead()
+{
+	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
+	SetActorEnableCollision(false);
+
+	// Dead Animation
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	AnimInstance->StopAllMontages(0.0f);
+	AnimInstance->Montage_Play(DeadMontage);
+
+	GetWorld()->GetTimerManager().SetTimer(DeadTimerHandle, FTimerDelegate::CreateLambda([&]()
+		{
+			Destroy();
+		}), 3.0f, false);
 }
 
 

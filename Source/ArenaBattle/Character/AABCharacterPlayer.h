@@ -19,7 +19,7 @@ class ARENABATTLE_API AAABCharacterPlayer : public AAABCharacterBase, public IAB
 public:
 	AAABCharacterPlayer();
 
-	virtual void AttackHitCheck() override;
+	virtual void AttackHitCheck(AttackType AttackType) override;
 
 protected:
 	virtual void BeginPlay() override;
